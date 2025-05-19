@@ -73,7 +73,8 @@ class HttpAPI:
             method: METHOD,
             path: str,
             query: dict[str, Any] = {},
-            body: dict[str, Any] = {},
+            json: dict[str, Any] = {},
+            body: Optional[bytes] = None,
             headers: dict = {},
             session_auth: Optional[AuthorizedSession] = None,
             request: REQUEST = DEFAULT_REQUEST, # type: ignore
@@ -103,7 +104,7 @@ class HttpAPI:
                 headers = await request.headers(headers)
                 headers = await response.headers(headers)
                 headers = await session_auth.headers(session, headers)
-                kwargs = await request.kwargs(query, body, kwargs)
+                kwargs = await request.kwargs(query, json, body, kwargs)
                 
                 async with session.request(method.value, path, headers=headers, **kwargs) as results:
                     await response.handle(results)

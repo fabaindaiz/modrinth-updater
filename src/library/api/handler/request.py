@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, TypeVar
+from typing import Any, Optional, Union, TypeVar
 from src.library.api.exceptions import HTTP_400_BAD_REQUEST
 
 REQUEST = TypeVar('REQUEST', bound="RequestHandler")
@@ -15,7 +15,7 @@ class RequestHandler(ABC):
         self.use_body = use_body
 
     @abstractmethod
-    async def kwargs(self, query: dict[str, Any], body: dict[str, Any], kwargs: dict) -> dict:
+    async def kwargs(self, query: Optional[dict[str, Any]], body: Optional[Union[bytes, dict[str, Any]]], kwargs: dict) -> dict:
         """Update the kwargs for the request with the request data.
 
         Args:
@@ -25,7 +25,14 @@ class RequestHandler(ABC):
         Returns:
             dict: Updated kwargs for the request with the data included.
         """
-        pass
+        if query:
+            kwargs.update({"params": query})
+        if body:
+            if isinstance(body, bytes):
+                kwargs.update({"data": body})
+            elif isinstance(body, dict):
+                kwargs.update({"json": body})
+        return kwargs
 
     @abstractmethod
     async def headers(self, headers: dict = {}) -> dict:
@@ -41,14 +48,10 @@ class RequestHandler(ABC):
 
 class JsonRequest(RequestHandler):
     """Send JSON data in the request body"""
-    async def kwargs(self, query: dict[str, Any], body: dict[str, Any], kwargs: dict) -> dict:
+    async def kwargs(self, query: Optional[dict[str, Any]], body: Optional[Union[bytes, dict[str, Any]]], kwargs: dict) -> dict:
         if not self.use_body and body:
             raise HTTP_400_BAD_REQUEST("body is not allowed in this requests")
-        kwargs.update({
-            "json": body,
-            "params": query,
-        })
-        return kwargs
+        return await super().kwargs(query, body, kwargs)
 
     async def headers(self, headers: dict = {}) -> dict:
         headers.update({"Content-Type": "application/json"} if self.use_body else {})
@@ -59,11 +62,7 @@ class MultiPartRequest(RequestHandler):
     async def kwargs(self, query: dict[str, Any], body: dict[str, Any], kwargs: dict) -> dict:
         if not self.use_body:
             raise HTTP_400_BAD_REQUEST("MultiPartRequest requires a method that uses a body")
-        kwargs.update({
-            "json": body,
-            "params": query,
-        })
-        return kwargs
+        return await super().kwargs(query, body, kwargs)
 
     async def headers(self, headers: dict = {}) -> dict:
         headers.update({"Content-Type": "multipart/form-data"})

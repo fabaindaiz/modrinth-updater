@@ -1,6 +1,6 @@
 import backoff
 from src.library.api import HttpAPI, METHOD
-from src.library.api.handler import JsonResponse, StreamResponse, MultiPartRequest
+from src.library.api.handler import JsonResponse, StreamResponse
 from src.library.api.session import NoAuthSession, TokenSession
 from src.library.api.exceptions import *
 from src.library.utils import getenv
@@ -14,9 +14,7 @@ class PterodactylAPI(HttpAPI):
             session_auth = NoAuthSession()
         else:
             session_auth = TokenSession(
-                token=PTERODACTYL_TOKEN,
-                scheme="Bearer ",
-            )
+                token=PTERODACTYL_TOKEN)
 
         super().__init__(
             base_url=PTERODACTYL_API_URL,
@@ -25,5 +23,55 @@ class PterodactylAPI(HttpAPI):
     
     @backoff.on_exception(backoff.expo, Exception, max_tries=2)
     async def servers_list(self) -> dict:
-        handler: JsonResponse = await self._request(METHOD.GET, path=f'application/servers')
+        handler: JsonResponse = await self._request(
+            method=METHOD.GET,
+            path=f'client')
+        return handler.json()
+    
+    @backoff.on_exception(backoff.expo, Exception, max_tries=2)
+    async def server_command(self, server_id: str, command: str) -> dict:
+        handler: JsonResponse = await self._request(
+            method=METHOD.GET,
+            path=f'client/servers/{server_id}/command',
+            query={"command": command})
+        return handler.json()
+    
+    @backoff.on_exception(backoff.expo, Exception, max_tries=2)
+    async def server_power(self, server_id: str, signal: str) -> dict:
+        handler: JsonResponse = await self._request(
+            method=METHOD.POST,
+            path=f'client/servers/{server_id}/power',
+            body={"signal": signal})
+        return handler.json()
+    
+    @backoff.on_exception(backoff.expo, Exception, max_tries=2)
+    async def server_files_list(self, server_id: str, directory: str) -> dict:
+        handler: JsonResponse = await self._request(
+            method=METHOD.GET, path=f'client/servers/{server_id}/files/list',
+            query={"directory": directory})
+        return handler.json()
+    
+    @backoff.on_exception(backoff.expo, Exception, max_tries=2)
+    async def server_files_download(self, server_id: str, filepath: str) -> dict:
+        handler: JsonResponse = await self._request(
+            method=METHOD.GET,
+            path=f'client/servers/{server_id}/files/download',
+            query={"file": filepath})
+        return handler.json()
+    
+    @backoff.on_exception(backoff.expo, Exception, max_tries=2)
+    async def server_files_upload(self, server_id: str, filepath: str, fileraw: bytes) -> dict:
+        handler: JsonResponse = await self._request(
+            method=METHOD.POST,
+            path=f'client/servers/{server_id}/files/upload',
+            query={"file": filepath},
+            data=fileraw)
+        return handler.json()
+    
+    @backoff.on_exception(backoff.expo, Exception, max_tries=2)
+    async def server_files_delete(self, server_id: str, directory: str, files: list[str]) -> dict:
+        handler: JsonResponse = await self._request(
+            method=METHOD.POST,
+            path=f'client/servers/{server_id}/files/upload',
+            query={"root": directory, "files": files})
         return handler.json()

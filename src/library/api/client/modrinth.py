@@ -18,8 +18,7 @@ class ModrinthCDN(HttpAPI):
         else:
             session_auth = TokenSession(
                 token=MODRINTH_TOKEN,
-                scheme="apiKey ",
-            )
+                scheme="apiKey ")
 
         super().__init__(
             base_url=None,
@@ -34,8 +33,12 @@ class ModrinthCDN(HttpAPI):
     
     @backoff.on_exception(backoff.expo, Exception, max_tries=2)
     async def download_file(self, url: str) -> bytes:
-        handler: StreamResponse = await self._request(METHOD.GET, path=url, headers=self.headers(), response=self.streamResponse)
-        return handler.stream() # type: ignore
+        handler: StreamResponse = await self._request(
+            method=METHOD.GET,
+            path=url,
+            headers=self.headers(),
+            response=self.streamResponse)
+        return handler.stream()
 
 class ModrinthAPI(HttpAPI):
     def __init__(self) -> None:
@@ -44,8 +47,7 @@ class ModrinthAPI(HttpAPI):
         else:
             session_auth = TokenSession(
                 token=MODRINTH_TOKEN,
-                scheme="apiKey ",
-            )
+                scheme="apiKey ")
 
         super().__init__(
             base_url=MODRINTH_API_URL,
@@ -60,20 +62,29 @@ class ModrinthAPI(HttpAPI):
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=2)
     async def project_info(self, slug: str) -> dict:
-        handler: JsonResponse = await self._request(METHOD.GET, path=f'project/{slug}', headers=self.headers())
-        return handler.json() # type: ignore
+        handler: JsonResponse = await self._request(
+            method=METHOD.GET,
+            path=f'project/{slug}',
+            headers=self.headers())
+        return handler.json()
     
     @backoff.on_exception(backoff.expo, Exception, max_tries=2)
     async def project_dependencies(self, slug: str) -> dict:
-        handler: JsonResponse = await self._request(METHOD.GET, path=f'project/{slug}/dependencies', headers=self.headers())
-        return handler.json() # type: ignore
+        handler: JsonResponse = await self._request(
+            method=METHOD.GET,
+            path=f'project/{slug}/dependencies',
+            headers=self.headers())
+        return handler.json()
     
     @backoff.on_exception(backoff.expo, Exception, max_tries=2)
     async def project_versions(self, slug: str, loaders: list[str] = [], game_versions: list[str] = [], featured: bool = True) -> dict:
-        query = {
-            "loaders": str(loaders),
-            "game_versions": str(game_versions),
-            "featured": boolToStr(featured, int_format=False)
-        }
-        handler: JsonResponse = await self._request(METHOD.GET, path=f'project/{slug}/version', query=query, headers=self.headers())
-        return handler.json() # type: ignore
+        handler: JsonResponse = await self._request(
+            method=METHOD.GET,
+            path=f'project/{slug}/version',
+            query={
+                "loaders": str(loaders),
+                "game_versions": str(game_versions),
+                "featured": boolToStr(featured, int_format=False)
+            },
+            headers=self.headers())
+        return handler.json()
