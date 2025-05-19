@@ -7,7 +7,7 @@ from src.library.utils import getenv, boolToStr
 
 MODRINTH_API_URL = getenv("MODRINTH_API_URL", "https://api.modrinth.com/v2/")
 MODRINTH_TOKEN = getenv("MODRINTH_TOKEN", fail_on_none=False)
-MODRINTH_AGENT = getenv("PROJECT_AGENT", fail_on_none=False)
+MODRINTH_AGENT = getenv("MODRINTH_AGENT", fail_on_none=False)
 
 class ModrinthCDN(HttpAPI):
     streamResponse = StreamResponse()
@@ -32,7 +32,7 @@ class ModrinthCDN(HttpAPI):
             headers["User-Agent"] = MODRINTH_AGENT
         return headers
     
-    #@backoff.on_exception(backoff.expo, Exception, max_time=10)
+    @backoff.on_exception(backoff.expo, Exception, max_tries=2)
     async def download_file(self, url: str) -> bytes:
         handler: StreamResponse = await self._request(METHOD.GET, path=url, headers=self.headers(), response=self.streamResponse)
         return handler.stream() # type: ignore
@@ -58,18 +58,18 @@ class ModrinthAPI(HttpAPI):
             headers["User-Agent"] = MODRINTH_AGENT
         return headers
 
-    #@backoff.on_exception(backoff.expo, Exception, max_time=10)
+    @backoff.on_exception(backoff.expo, Exception, max_tries=2)
     async def project_info(self, slug: str) -> dict:
         handler: JsonResponse = await self._request(METHOD.GET, path=f'project/{slug}', headers=self.headers())
         return handler.json() # type: ignore
     
-    #@backoff.on_exception(backoff.expo, Exception, max_time=10)
+    @backoff.on_exception(backoff.expo, Exception, max_tries=2)
     async def project_dependencies(self, slug: str) -> dict:
         handler: JsonResponse = await self._request(METHOD.GET, path=f'project/{slug}/dependencies', headers=self.headers())
         return handler.json() # type: ignore
     
-    #@backoff.on_exception(backoff.expo, Exception, max_time=10)
-    async def project_versions(self, slug: str, loaders: list[str] = None, game_versions: list[str] = None, featured: bool = True) -> dict:
+    @backoff.on_exception(backoff.expo, Exception, max_tries=2)
+    async def project_versions(self, slug: str, loaders: list[str] = [], game_versions: list[str] = [], featured: bool = True) -> dict:
         query = {
             "loaders": str(loaders),
             "game_versions": str(game_versions),

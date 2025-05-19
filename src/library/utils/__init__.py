@@ -1,6 +1,7 @@
 import os
 import yaml
 import logging
+import urllib.parse
 from datetime import datetime, timezone
 from pprint import pformat
 from typing import Any, Callable, Optional, TypeVar
@@ -65,3 +66,18 @@ def strToBool(string: str) -> bool:
 
 def now() -> float:
     return datetime.now(tz=timezone.utc).timestamp()
+
+def name_from_url(url: str) -> str:
+    """
+    Extract the name from a URL.
+    
+    Args:
+        url (str): The URL to extract the name from.
+        
+    Returns:
+        str: The extracted name.
+    """
+    url_split = url.split("/")
+    if len(url_split) < 1:
+        raise ValueError("Cannot extract name from URL")
+    return urllib.parse.unquote(url.split("/")[-1])

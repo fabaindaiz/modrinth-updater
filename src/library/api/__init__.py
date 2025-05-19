@@ -35,7 +35,7 @@ class HttpAPI:
         session_auth (AuthorizedSession, optional): Authorization session for the API. Defaults to NO_AUTHORIZE.
     """
     def __init__(self,
-            base_url: str,
+            base_url: Optional[str],
             proxy: Optional[str] = None,
             timeout: Optional[ClientTimeout] = DEFAULT_TIMEOUT,
             session_auth: AuthorizedSession = NO_AUTHORIZE,

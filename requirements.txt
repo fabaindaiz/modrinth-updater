@@ -1,4 +1,5 @@
 aiohttp
 backoff
+dependency-injector
 pydantic
 pyyaml
