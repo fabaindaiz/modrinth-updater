@@ -17,8 +17,11 @@ pprint(parsed)
 response = asyncio.run(modrinthAPI.project_versions("oh-the-biomes-weve-gone", loaders=["forge", "neoforge"], game_versions=["1.20.1"]))
 pprint(response)
 
+folder: str = "downloads"
+os.makedirs(folder, exist_ok=True)
+
 url: str = response[0]["files"][0]["url"]
-filename = os.path.join("data", name_from_url(url))
+filename = os.path.join(folder, name_from_url(url))
 
 file = asyncio.run(modrinthCDN.download_file(url))
 with open(filename, mode="wb") as f:

@@ -41,7 +41,7 @@ class PterodactylAPI(HttpAPI):
         handler: JsonResponse = await self._request(
             method=METHOD.POST,
             path=f'client/servers/{server_id}/power',
-            body={"signal": signal})
+            json={"signal": signal})
         return handler.json()
     
     @backoff.on_exception(backoff.expo, Exception, max_tries=2)

@@ -74,7 +74,7 @@ class HttpAPI:
             path: str,
             query: dict[str, Any] = {},
             json: dict[str, Any] = {},
-            body: Optional[bytes] = None,
+            body: Optional[Any] = None,
             headers: dict = {},
             session_auth: Optional[AuthorizedSession] = None,
             request: REQUEST = DEFAULT_REQUEST, # type: ignore
